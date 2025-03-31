@@ -5,8 +5,7 @@
         {% component "unfold/components/text.html" %}
             Monthly budget
         {% endcomponent %}
-
-        {% component "unfold/components/title.html" with component_class="DriverActiveComponent" %}{% endcomponent %}
+        {% component "unfold/components/title.html" with component_class="DriverActiveComponent" value=total_budget %}{% endcomponent %}
     {% endcomponent %}
   </div>
 {% endblock %}

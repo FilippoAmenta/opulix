@@ -11,6 +11,7 @@ from treenode.forms import TreeNodeForm
 
 from unfold.admin import ModelAdmin
 from unfold.components import BaseComponent, register_component
+from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
 
 from apps.expenses.models import (
     ExpenseCategory,
@@ -18,17 +19,17 @@ from apps.expenses.models import (
     Expense
 )
 
+from import_export.admin import ImportExportModelAdmin
+
 @admin.register(ExpenseCategory)
-class ExpenseCategoryAdmin(TreeNodeModelAdmin, ModelAdmin):
+class ExpenseCategoryAdmin(TreeNodeModelAdmin, ModelAdmin, ImportExportModelAdmin):
+    import_form_class = ImportForm
+    export_form_class = SelectableFieldsExportForm
     treenode_display_mode = TreeNodeModelAdmin.TREENODE_DISPLAY_MODE_BREADCRUMBS
     form = TreeNodeForm
-
     list_display = [
         'label',
         'color_display',
-        'budget'
-    ]
-    list_editable = [
         'budget'
     ]
     search_fields = [
@@ -40,16 +41,23 @@ class ExpenseCategoryAdmin(TreeNodeModelAdmin, ModelAdmin):
 
     list_before_template = "expenses/expense-category/list_before.html"
 
+    def changelist_view(self, request, extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+        queryset = self.get_queryset(request)
+        extra_context["total_budget"] = queryset.aggregate(total=Sum("budget"))["total"] or 0
+        return super().changelist_view(request, extra_context=extra_context)
+    
 @register_component
 class DriverActiveComponent(BaseComponent):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["children"] = render_to_string("helpers/kpi.html",
             {
-                "total": 10,
-                "progress": None,
-                "percentage": None,
-            },
+                "value": context.get("value", None),
+                "progress": context.get("progress", None),
+                "percentage": context.get("percentage", None)
+            }
         )
         return context
 

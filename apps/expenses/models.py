@@ -4,12 +4,14 @@ from treenode.models import TreeNodeModel
 from djmoney.models.fields import MoneyField
 
 class ExpenseCategory(TreeNodeModel):
-    label = models.CharField(max_length=63,unique=True)
+    label = models.CharField(max_length=63)
     color = ColorField()
     budget = MoneyField(max_digits=6, decimal_places=2, default_currency='EUR', null=True, blank=True)
     code = models.CharField(max_length=63, unique=True, blank=True, null=True)
 
     treenode_display_field = "label"
+    
+    external_id = models.CharField(max_length=63, blank=True, null=True)
     
     def __str__(self):
         return str(self.label)
